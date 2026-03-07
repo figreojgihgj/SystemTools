@@ -13,6 +13,8 @@
 
 **为 ClassIsland 提供多彩而丰富的更多 组件/行动/触发器/实用工具！**
 
+<img src="https://cipx.minisvc.com/svg/plugin/SystemTools" alt="SystemTools" width="400" height="100" style="border-radius: 8px; max-width: 100%; height: auto;" />
+
 ![另类](https://repobeats.axiom.co/api/embed/d7ed2cf283c8ab3457f5a01ec214c458d0e34190.svg)
 
 ![GitHub License](https://img.shields.io/github/license/Programmer-MrWang/SystemTools)
