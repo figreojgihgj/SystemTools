@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using ClassIsland.Core.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,20 +186,18 @@ public class FloatingWindowService
 
         foreach (var entry in GetOrderedEntries())
         {
-            var iconBlock = new TextBlock
+            var iconBlock = new FluentIcon
             {
-                Text = ConvertIcon(entry.Icon),
-                FontSize = 18 * scale,
-                FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"),
+                Glyph = ConvertIcon(entry.Icon),
+                FontSize = 22 * scale,
                 HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                TextAlignment = TextAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center
             };
 
             var nameBlock = new TextBlock
             {
                 Text = string.IsNullOrWhiteSpace(entry.Name) ? "触发" : entry.Name,
-                FontSize = 10 * scale,
+                FontSize = 12 * scale,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
