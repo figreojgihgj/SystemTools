@@ -150,21 +150,23 @@
                                            Description="选择需要本插件要启用的功能">
                     <controls:SettingsExpander.Footer>
                         <StackPanel Orientation="Horizontal">
-                            <controls1:ExperimentalBadge IsVisible="{Binding Settings.IsExperimentalModeActivated}" />
                             <Button Content="管理启用的功能..."
                                     Width="165"
                                     Click="OnManageFeaturesClick" />
                         </StackPanel>
                     </controls:SettingsExpander.Footer>
                 </controls:SettingsExpander>
-                
+
                 <controls:SettingsExpander IconSource="{ci:FluentIconSource &#xEA37;}"
                                            Header="悬浮窗设置"
-                                           Description="设置“从悬浮窗触发”触发器的悬浮窗样式">
+                                           Description="设置在“从悬浮窗触发”触发器中添加的悬浮窗样式">
                     <controls:SettingsExpanderItem Content="显示悬浮窗">
                         <controls:SettingsExpanderItem.Footer>
+                            <StackPanel Orientation="Horizontal">
+                            <controls1:ExperimentalBadge IsVisible="{Binding Settings.IsExperimentalModeActivated}" />
                             <ToggleSwitch IsChecked="{Binding ViewModel.Settings.ShowFloatingWindow, Mode=TwoWay}"
-                                          Click="OnFloatingWindowConfigChanged"/>
+                                          Click="OnFloatingWindowConfigChanged" />
+                            </StackPanel>
                         </controls:SettingsExpanderItem.Footer>
                     </controls:SettingsExpanderItem>
 
@@ -177,18 +179,23 @@
                                         TickFrequency="0.1"
                                         IsSnapToTickEnabled="True"
                                         Value="{Binding ViewModel.Settings.FloatingWindowScale, Mode=TwoWay}" />
-                                <TextBlock Text="{Binding ViewModel.Settings.FloatingWindowScale, StringFormat='{}{0:F1}x'}"
-                                           Width="46"
-                                           VerticalAlignment="Center"/>
+                                <TextBlock
+                                    Text="{Binding ViewModel.Settings.FloatingWindowScale, StringFormat='{}{0:F1}x'}"
+                                    Width="46"
+                                    VerticalAlignment="Center" />
                             </StackPanel>
                         </controls:SettingsExpanderItem.Footer>
                     </controls:SettingsExpanderItem>
 
                     <StackPanel Margin="12,0,12,12" Spacing="8">
-                        <TextBlock Text="默认第一行展示当前触发器中注册的按钮，可通过拖拽调整任意行任意位置。"
+                        <Grid>
+                        <TextBlock Text="您可在下方通过拖拽调整行内按钮顺序或添加行已实现纵列排布等功能。"
+                                   HorizontalAlignment="Left"
                                    TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                        <Button Content="添加行" Width="92" HorizontalAlignment="Left" Click="OnAddFloatingTriggerRowClick"/>
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Button Content="添加行" Width="92" HorizontalAlignment="Right"
+                                Click="OnAddFloatingTriggerRowClick" />
+                        </Grid>
                         <ItemsControl ItemsSource="{Binding ViewModel.FloatingTriggerRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -202,8 +209,11 @@
                                             DragDrop.Drop="OnFloatingTriggerRowDrop">
                                         <StackPanel Spacing="6">
                                             <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                                <TextBlock Text="按钮行" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                                                <Button Grid.Column="1" Content="删除行" Click="OnRemoveFloatingTriggerRowClick" Theme="{StaticResource TransparentButton}"/>
+                                                <TextBlock Text="按钮行"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <Button Grid.Column="1" Content="删除行"
+                                                        Click="OnRemoveFloatingTriggerRowClick"
+                                                        Theme="{StaticResource TransparentButton}" />
                                             </Grid>
                                             <Border MinHeight="52"
                                                     CornerRadius="6"
@@ -217,25 +227,27 @@
                                                               DragDrop.Drop="OnFloatingTriggerRowDrop">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
-                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="14"/>
+                                                            <StackPanel Orientation="Horizontal"
+                                                                        HorizontalAlignment="Center" Spacing="14" />
                                                         </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
-                                                                    CornerRadius="6"
-                                                                    Padding="8,4"
-                                                                    Margin="0,0,2,0"
-                                                                    Tag="{Binding ButtonId}"
-                                                                    DragDrop.AllowDrop="True"
-                                                                    DragDrop.DragOver="OnFloatingTriggerItemDragOver"
-                                                                    DragDrop.Drop="OnFloatingTriggerItemDrop"
-                                                                    PointerPressed="OnFloatingTriggerItemPointerPressed"
-                                                                    PointerMoved="OnFloatingTriggerItemPointerMoved"
-                                                                    PointerReleased="OnFloatingTriggerItemPointerReleased">
+                                                            <Border
+                                                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                                                CornerRadius="6"
+                                                                Padding="8,4"
+                                                                Margin="0,0,2,0"
+                                                                Tag="{Binding ButtonId}"
+                                                                DragDrop.AllowDrop="True"
+                                                                DragDrop.DragOver="OnFloatingTriggerItemDragOver"
+                                                                DragDrop.Drop="OnFloatingTriggerItemDrop"
+                                                                PointerPressed="OnFloatingTriggerItemPointerPressed"
+                                                                PointerMoved="OnFloatingTriggerItemPointerMoved"
+                                                                PointerReleased="OnFloatingTriggerItemPointerReleased">
                                                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                                                    <TextBlock Text="{Binding Icon}"/>
-                                                                    <TextBlock Text="{Binding ButtonName}"/>
+                                                                    <TextBlock Text="{Binding Icon}" />
+                                                                    <TextBlock Text="{Binding ButtonName}" />
                                                                 </StackPanel>
                                                             </Border>
                                                         </DataTemplate>
@@ -266,7 +278,6 @@
                 <!-- 启用更多功能 -->
                 <controls:SettingsExpander IconSource="{ci:FluentIconSource &#xE071;}"
                                            Header="启用扩展功能"
-                                           IsExpanded="True"
                                            Description="启用需要下载依赖的更多可选功能">
 
                     <controls:SettingsExpanderItem Content="启用需要添加 FFmpeg 依赖的功能">
@@ -287,11 +298,14 @@
 
                     <controls:SettingsExpanderItem Content="启用人脸识别验证功能">
                         <controls:SettingsExpanderItem.Footer>
+                            <StackPanel Orientation="Horizontal">
+                                <controls1:ExperimentalBadge IsVisible="{Binding Settings.IsExperimentalModeActivated}" />
                             <ToggleSwitch IsChecked="{Binding ViewModel.Settings.EnableFaceRecognition, Mode=TwoWay}"
                                           Click="OnFaceRecognitionToggleClick" />
+                            </StackPanel>
                         </controls:SettingsExpanderItem.Footer>
                     </controls:SettingsExpanderItem>
-
+                    
                     <controls:SettingsExpanderItem Content="下载人脸识别验证模型及运行时">
                         <controls:SettingsExpanderItem.Footer>
                             <Button Content="点击下载（138 MB）"

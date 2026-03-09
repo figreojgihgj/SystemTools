@@ -33,7 +33,8 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
                                                                        .LocalApplicationData), "ClassIsland", "Plugins",
                                                                    "SystemTools"));
 
-        ViewModel = new SystemToolsSettingsViewModel(GlobalConstants.MainConfig, IAppHost.GetService<FloatingWindowService>());
+        ViewModel = new SystemToolsSettingsViewModel(GlobalConstants.MainConfig,
+            IAppHost.GetService<FloatingWindowService>());
         DataContext = this;
         InitializeComponent();
 
@@ -159,7 +160,7 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
 
         if (success)
         {
-            // 下载成功后，根据文件存在状态更新按钮（已在 ViewModel 的 finally 中处理，但这里可再次调用以确保）
+            // 下载成功后，根据文件存在状态更新按钮
             UpdateDownloadButtonStates();
         }
     }
@@ -240,7 +241,7 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
 
         if (ViewModel.FloatingTriggerRows.Count <= 1)
         {
-            this.ShowWarningToast("至少需要保留 1 行。");
+            //this.ShowWarningToast("至少需要保留 1 行。");
             return;
         }
 
@@ -316,6 +317,7 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
             {
                 return ViewModel.FloatingTriggerRows.IndexOf(row);
             }
+
             current = current.GetVisualParent() as Control;
         }
 
