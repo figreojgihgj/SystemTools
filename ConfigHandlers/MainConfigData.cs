@@ -138,6 +138,51 @@ public class MainConfigData : INotifyPropertyChanged
         }
     }
 
+    int _floatingWindowTextSize = 12;
+
+    [JsonPropertyName("floatingWindowTextSize")]
+    public int FloatingWindowTextSize
+    {
+        get => _floatingWindowTextSize;
+        set
+        {
+            var clamped = Math.Clamp(value, 8, 30);
+            if (clamped == _floatingWindowTextSize) return;
+            _floatingWindowTextSize = clamped;
+            OnPropertyChanged();
+        }
+    }
+
+    int _floatingWindowIconSize = 22;
+
+    [JsonPropertyName("floatingWindowIconSize")]
+    public int FloatingWindowIconSize
+    {
+        get => _floatingWindowIconSize;
+        set
+        {
+            var clamped = Math.Clamp(value, 8, 30);
+            if (clamped == _floatingWindowIconSize) return;
+            _floatingWindowIconSize = clamped;
+            OnPropertyChanged();
+        }
+    }
+
+    int _floatingWindowOpacity = 80;
+
+    [JsonPropertyName("floatingWindowOpacity")]
+    public int FloatingWindowOpacity
+    {
+        get => _floatingWindowOpacity;
+        set
+        {
+            var clamped = Math.Clamp(value, 10, 100);
+            if (clamped == _floatingWindowOpacity) return;
+            _floatingWindowOpacity = clamped;
+            OnPropertyChanged();
+        }
+    }
+
     int _floatingWindowPositionX = 100;
 
     [JsonPropertyName("floatingWindowPositionX")]

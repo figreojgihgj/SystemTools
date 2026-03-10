@@ -20,6 +20,7 @@ public class FloatingWindowService
     private readonly Dictionary<FloatingWindowTrigger, FloatingWindowEntry> _entries = new();
     private Window? _window;
     private StackPanel? _stackPanel;
+    private Border? _windowContainer;
 
     private bool _pointerPressed;
     private bool _dragInitiated;
@@ -114,7 +115,7 @@ public class FloatingWindowService
             CanResize = false,
             ShowInTaskbar = false,
             SizeToContent = SizeToContent.WidthAndHeight,
-            Content = new Border
+            Content = _windowContainer = new Border
             {
                 Background = new SolidColorBrush(Color.Parse("#CC1F1F1F")),
                 CornerRadius = new CornerRadius(8),
@@ -175,6 +176,15 @@ public class FloatingWindowService
         }
 
         var scale = Math.Clamp(_configHandler.Data.FloatingWindowScale, 0.5, 2.0);
+        var iconSize = Math.Clamp(_configHandler.Data.FloatingWindowIconSize, 8, 30) * scale;
+        var textSize = Math.Clamp(_configHandler.Data.FloatingWindowTextSize, 8, 30) * scale;
+        var opacity = Math.Clamp(_configHandler.Data.FloatingWindowOpacity, 10, 100);
+
+        if (_windowContainer != null)
+        {
+            _windowContainer.Background = new SolidColorBrush(Color.FromArgb(
+                (byte)Math.Round(255 * (opacity / 100.0)), 0x1F, 0x1F, 0x1F));
+        }
 
         _stackPanel.Orientation = Orientation.Vertical;
         _stackPanel.Spacing = 6 * scale;
@@ -197,7 +207,7 @@ public class FloatingWindowService
             var iconBlock = new FluentIcon
             {
                 Glyph = ConvertIcon(entry.Icon),
-                FontSize = 22 * scale,
+                FontSize = iconSize,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -205,7 +215,7 @@ public class FloatingWindowService
             var nameBlock = new TextBlock
             {
                 Text = string.IsNullOrWhiteSpace(entry.Name) ? "触发" : entry.Name,
-                FontSize = 12 * scale,
+                FontSize = textSize,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,

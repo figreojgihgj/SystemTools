@@ -77,6 +77,7 @@ public class Plugin : PluginBase
         
         // ========== 注册设置页面 ==========
         services.AddSettingsPage<SystemToolsSettingsPage>();
+        services.AddSettingsPage<FloatingWindowEditorSettingsPage>();
         services.AddSettingsPage<AboutSettingsPage>();
 
         // ========== 构建行动树（根据配置）==========
