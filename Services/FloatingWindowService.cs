@@ -1,9 +1,10 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using ClassIsland.Core.Controls;
 using System;
@@ -20,11 +21,13 @@ public class FloatingWindowService
     private readonly Dictionary<FloatingWindowTrigger, FloatingWindowEntry> _entries = new();
     private Window? _window;
     private StackPanel? _stackPanel;
+    private Border? _windowContainer;
 
     private bool _pointerPressed;
     private bool _dragInitiated;
     private Point _pointerDownPoint;
     private PointerPressedEventArgs? _lastPressedArgs;
+    private bool _isThemeSubscribed;
 
     public event EventHandler? EntriesChanged;
 
@@ -40,6 +43,7 @@ public class FloatingWindowService
         Dispatcher.UIThread.Post(() =>
         {
             EnsureWindow();
+            SubscribeThemeChanged();
             ApplyVisibility();
             RefreshWindowButtons();
         });
@@ -54,6 +58,8 @@ public class FloatingWindowService
                 _window.Close();
                 _window = null;
             }
+
+            UnsubscribeThemeChanged();
         });
     }
 
@@ -95,6 +101,42 @@ public class FloatingWindowService
         });
     }
 
+    private void SubscribeThemeChanged()
+    {
+        if (_isThemeSubscribed || Application.Current == null)
+        {
+            return;
+        }
+
+        Application.Current.PropertyChanged += OnApplicationPropertyChanged;
+        _isThemeSubscribed = true;
+    }
+
+    private void UnsubscribeThemeChanged()
+    {
+        if (!_isThemeSubscribed || Application.Current == null)
+        {
+            return;
+        }
+
+        Application.Current.PropertyChanged -= OnApplicationPropertyChanged;
+        _isThemeSubscribed = false;
+    }
+
+    private void OnApplicationPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (string.Equals(e.Property?.Name, "ActualThemeVariant", StringComparison.Ordinal))
+        {
+            Dispatcher.UIThread.Post(RefreshWindowButtons);
+        }
+    }
+
+    private bool IsLightTheme()
+    {
+        var theme = _window?.ActualThemeVariant ?? Application.Current?.ActualThemeVariant;
+        return theme == ThemeVariant.Light;
+    }
+
     private void EnsureWindow()
     {
         if (_window != null)
@@ -114,7 +156,7 @@ public class FloatingWindowService
             CanResize = false,
             ShowInTaskbar = false,
             SizeToContent = SizeToContent.WidthAndHeight,
-            Content = new Border
+            Content = _windowContainer = new Border
             {
                 Background = new SolidColorBrush(Color.Parse("#CC1F1F1F")),
                 CornerRadius = new CornerRadius(8),
@@ -126,7 +168,6 @@ public class FloatingWindowService
         _window.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel, true);
         _window.AddHandler(InputElement.PointerMovedEvent, OnPointerMoved, RoutingStrategies.Tunnel, true);
         _window.AddHandler(InputElement.PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel, true);
-        _window.PositionChanged += (_, _) => SavePosition();
         _window.Closing += (_, e) =>
         {
             if (_configHandler.Data.ShowFloatingWindow)
@@ -141,9 +182,8 @@ public class FloatingWindowService
 
     private void OnWindowLoaded(object? sender, RoutedEventArgs e)
     {
-        _window!.Position = new PixelPoint(_configHandler.Data.FloatingWindowPositionX,
-            _configHandler.Data.FloatingWindowPositionY);
-        _window.TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
+        _window!.TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
+        EnsureWindowPositionVisibleOnStartup();
     }
 
     private void ApplyVisibility()
@@ -175,6 +215,20 @@ public class FloatingWindowService
         }
 
         var scale = Math.Clamp(_configHandler.Data.FloatingWindowScale, 0.5, 2.0);
+        var iconSize = Math.Clamp(_configHandler.Data.FloatingWindowIconSize, 8, 30) * scale;
+        var textSize = Math.Clamp(_configHandler.Data.FloatingWindowTextSize, 8, 30) * scale;
+        var opacity = Math.Clamp(_configHandler.Data.FloatingWindowOpacity, 10, 100);
+        var alpha = (byte)Math.Round(255 * (opacity / 100.0));
+        var isLightTheme = IsLightTheme();
+        var windowBackground = isLightTheme
+            ? new SolidColorBrush(Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF))
+            : new SolidColorBrush(Color.FromArgb(alpha, 0x1F, 0x1F, 0x1F));
+        var contentForeground = isLightTheme ? Brushes.Black : Brushes.White;
+
+        if (_windowContainer != null)
+        {
+            _windowContainer.Background = windowBackground;
+        }
 
         _stackPanel.Orientation = Orientation.Vertical;
         _stackPanel.Spacing = 6 * scale;
@@ -194,51 +248,53 @@ public class FloatingWindowService
 
             foreach (var entry in rowEntries)
             {
-            var iconBlock = new FluentIcon
-            {
-                Glyph = ConvertIcon(entry.Icon),
-                FontSize = 22 * scale,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            var nameBlock = new TextBlock
-            {
-                Text = string.IsNullOrWhiteSpace(entry.Name) ? "触发" : entry.Name,
-                FontSize = 12 * scale,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-                MaxWidth = 100 * scale,
-                Margin = new Thickness(0, 2 * scale, 0, 0)
-            };
-
-            var contentPanel = new StackPanel
-            {
-                Orientation = Orientation.Vertical,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Spacing = 2 * scale,
-                Children =
+                var iconBlock = new FluentIcon
                 {
-                    iconBlock,
-                    nameBlock
-                }
-            };
+                    Glyph = ConvertIcon(entry.Icon),
+                    FontSize = iconSize,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Foreground = contentForeground
+                };
 
-            var button = new Button
-            {
-                Content = contentPanel,
-                MinWidth = 54 * scale,
-                MinHeight = 52 * scale,
-                Padding = new Thickness(6 * scale, 4 * scale),
-                Background = Brushes.Transparent,
-                Foreground = Brushes.White,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
+                var nameBlock = new TextBlock
+                {
+                    Text = string.IsNullOrWhiteSpace(entry.Name) ? "触发" : entry.Name,
+                    FontSize = textSize,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = 100 * scale,
+                    Margin = new Thickness(0, 2 * scale, 0, 0),
+                    Foreground = contentForeground
+                };
 
-            button.Click += (_, _) => entry.TriggerAction();
+                var contentPanel = new StackPanel
+                {
+                    Orientation = Orientation.Vertical,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Spacing = 2 * scale,
+                    Children =
+                    {
+                        iconBlock,
+                        nameBlock
+                    }
+                };
+
+                var button = new Button
+                {
+                    Content = contentPanel,
+                    MinWidth = 54 * scale,
+                    MinHeight = 52 * scale,
+                    Padding = new Thickness(6 * scale, 4 * scale),
+                    Background = Brushes.Transparent,
+                    Foreground = contentForeground,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+
+                button.Click += (_, _) => entry.TriggerAction();
                 rowPanel.Children.Add(button);
             }
 
@@ -349,18 +405,119 @@ public class FloatingWindowService
         _pointerPressed = false;
         _dragInitiated = false;
         _lastPressedArgs = null;
-        SavePosition();
+
+        if (_window == null)
+        {
+            return;
+        }
+
+        var clamped = ClampToVisibleScreen(_window.Position);
+        _window.Position = clamped;
+        SavePosition(clamped, forceSave: true);
     }
 
-    private void SavePosition()
+    private PixelRect GetWindowRect(PixelPoint position)
+    {
+        if (_window == null)
+        {
+            return new PixelRect(position.X, position.Y, 0, 0);
+        }
+
+        var width = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Width));
+        var height = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Height));
+        return new PixelRect(position.X, position.Y, width, height);
+    }
+
+    private bool IsWindowInsideAnyScreen(PixelRect rect)
+    {
+        if (_window?.Screens?.All is not { } screens || screens.Count == 0)
+        {
+            return true;
+        }
+
+        return screens.Any(screen => screen.WorkingArea.Intersects(rect));
+    }
+
+    private PixelPoint GetCenteredPositionOnPrimaryScreen()
+    {
+        if (_window?.Screens?.Primary is not { } primary || _window == null)
+        {
+            return _window?.Position ?? new PixelPoint(0, 0);
+        }
+
+        var area = primary.WorkingArea;
+        var width = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Width));
+        var height = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Height));
+
+        var x = area.X + (area.Width - width) / 2;
+        var y = area.Y + (area.Height - height) / 2;
+        return new PixelPoint(x, y);
+    }
+
+    private PixelPoint ClampToVisibleScreen(PixelPoint position)
+    {
+        if (_window == null)
+        {
+            return position;
+        }
+
+        var screens = _window.Screens?.All;
+        if (screens == null || screens.Count == 0)
+        {
+            return position;
+        }
+
+        var screen = screens.FirstOrDefault(s => s.WorkingArea.Contains(position))
+                     ?? _window.Screens?.Primary
+                     ?? screens[0];
+
+        var area = screen.WorkingArea;
+        var width = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Width));
+        var height = Math.Max(1, (int)Math.Ceiling(_window.Bounds.Height));
+
+        var minX = area.X;
+        var minY = area.Y;
+        var maxX = area.X + Math.Max(0, area.Width - width);
+        var maxY = area.Y + Math.Max(0, area.Height - height);
+
+        return new PixelPoint(Math.Clamp(position.X, minX, maxX), Math.Clamp(position.Y, minY, maxY));
+    }
+
+    private void EnsureWindowPositionVisibleOnStartup()
     {
         if (_window == null)
         {
             return;
         }
 
-        _configHandler.Data.FloatingWindowPositionX = _window.Position.X;
-        _configHandler.Data.FloatingWindowPositionY = _window.Position.Y;
+        var configured = new PixelPoint(_configHandler.Data.FloatingWindowPositionX, _configHandler.Data.FloatingWindowPositionY);
+        var rect = GetWindowRect(configured);
+        var target = IsWindowInsideAnyScreen(rect) ? ClampToVisibleScreen(configured) : GetCenteredPositionOnPrimaryScreen();
+
+        _window.Position = target;
+        SavePosition(target, forceSave: configured != target);
+    }
+
+    private void SavePosition(PixelPoint position, bool forceSave = false)
+    {
+        var changed = false;
+
+        if (_configHandler.Data.FloatingWindowPositionX != position.X)
+        {
+            _configHandler.Data.FloatingWindowPositionX = position.X;
+            changed = true;
+        }
+
+        if (_configHandler.Data.FloatingWindowPositionY != position.Y)
+        {
+            _configHandler.Data.FloatingWindowPositionY = position.Y;
+            changed = true;
+        }
+
+        if (forceSave || changed)
+        {
+            _configHandler.Save();
+        }
     }
 
     public static string ConvertIcon(string raw)

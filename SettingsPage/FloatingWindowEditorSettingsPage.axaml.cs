@@ -1,30 +1,28 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.ComponentModel;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using ClassIsland.Core;
+using ClassIsland.Core.Abstractions;
 using ClassIsland.Core.Abstractions.Controls;
 using ClassIsland.Core.Attributes;
-using FluentAvalonia.UI.Controls;
-using SystemTools.ConfigHandlers;
-using SystemTools.Shared;
-using SystemTools.Services;
-using ClassIsland.Core.Abstractions;
 using ClassIsland.Shared;
+using SystemTools.ConfigHandlers;
+using SystemTools.Services;
+using SystemTools.Shared;
 
 namespace SystemTools;
 
 [HidePageTitle]
-[SettingsPageInfo("systemtools.settings.main", "主设置", "\uE079", "\uE078")]
-public partial class SystemToolsSettingsPage : SettingsPageBase
+[SettingsPageInfo("systemtools.settings.floating", "悬浮窗编辑", "\uEA37", "\uEA37")]
+public partial class FloatingWindowEditorSettingsPage : SettingsPageBase
 {
-    public SystemToolsSettingsPage()
+    public FloatingWindowEditorSettingsPage()
     {
         if (GlobalConstants.MainConfig == null)
             GlobalConstants.MainConfig = new MainConfigHandler(GlobalConstants.PluginConfigFolder
@@ -38,194 +36,31 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
         DataContext = this;
         InitializeComponent();
 
-        // 初始化时更新下载按钮状态
-        UpdateDownloadButtonStates();
-
-        ViewModel.InitializeFeatureItems();
         ViewModel.RefreshFloatingTriggers();
-        ViewModel.Settings.RestartPropertyChanged += OnRestartPropertyChanged;
         ViewModel.Settings.PropertyChanged += OnSettingsPropertyChanged;
     }
 
     public SystemToolsSettingsViewModel ViewModel { get; }
 
-    private void UpdateDownloadButtonStates()
-    {
-        ViewModel.IsFfmpegDownloadEnabled = !ViewModel.CheckFfmpegExists();
-        ViewModel.IsFaceModelsDownloadEnabled = !ViewModel.CheckFaceModelsExists();
-    }
-
-    private void OnRestartPropertyChanged(object? sender, EventArgs e)
-    {
-        RequestRestart();
-    }
-
-
     private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(MainConfigData.ShowFloatingWindow)
-            or nameof(MainConfigData.FloatingWindowScale))
+            or nameof(MainConfigData.FloatingWindowScale)
+            or nameof(MainConfigData.FloatingWindowIconSize)
+            or nameof(MainConfigData.FloatingWindowTextSize)
+            or nameof(MainConfigData.FloatingWindowOpacity))
         {
             IAppHost.GetService<FloatingWindowService>().UpdateWindowState();
         }
     }
 
-
-    private void ButtonRestart_OnClick(object sender, RoutedEventArgs e)
-    {
-        RequestRestart();
-    }
-
-
-    private void OnFloatingFeatureToggleClick(object? sender, RoutedEventArgs e)
-    {
-        RequestRestart();
-    }
-
-    private async void OnFfmpegToggleClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not ToggleSwitch toggle) return;
-
-        if (toggle.IsChecked == true)
-        {
-            if (!ViewModel.CheckFfmpegExists())
-            {
-                toggle.IsChecked = false;
-                await ShowFfmpegNotFoundDialogAsync();
-            }
-            else
-            {
-                ViewModel.Settings.RestartPropertyChanged -= OnRestartPropertyChanged;
-                ViewModel.Settings.EnableFfmpegFeatures = true;
-                ViewModel.Settings.RestartPropertyChanged += OnRestartPropertyChanged;
-
-                // 关闭功能时，允许重新下载（按钮启用状态由文件存在决定）
-                ViewModel.IsFfmpegDownloadEnabled = !ViewModel.CheckFfmpegExists();
-
-                RequestRestart();
-            }
-        }
-        else
-        {
-            ViewModel.Settings.RestartPropertyChanged -= OnRestartPropertyChanged;
-            ViewModel.Settings.EnableFfmpegFeatures = false;
-            ViewModel.Settings.RestartPropertyChanged += OnRestartPropertyChanged;
-
-            // 关闭功能时，允许重新下载（按钮启用状态由文件存在决定）
-            ViewModel.IsFfmpegDownloadEnabled = !ViewModel.CheckFfmpegExists();
-
-            RequestRestart();
-        }
-    }
-
-    private async Task ShowFfmpegNotFoundDialogAsync()
-    {
-        var dialog = new ContentDialog
-        {
-            Title = "提示",
-            Content = "请您先下载本插件专用的ffmpeg模块！",
-            PrimaryButtonText = "确定",
-            DefaultButton = ContentDialogButton.Primary
-        };
-
-        await dialog.ShowAsync();
-    }
-
-    private async void OnFaceRecognitionToggleClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not ToggleSwitch toggle) return;
-
-        if (toggle.IsChecked == true)
-        {
-            if (!ViewModel.CheckFaceModelsExists())
-            {
-                toggle.IsChecked = false;
-                var dialog = new ContentDialog
-                {
-                    Title = "提示",
-                    Content = "请您先下载人脸识别验证模型！",
-                    PrimaryButtonText = "确定",
-                    DefaultButton = ContentDialogButton.Primary
-                };
-                await dialog.ShowAsync();
-            }
-            else
-            {
-                RequestRestart();
-            }
-        }
-        else
-        {
-            RequestRestart();
-        }
-    }
-
-    private async void OnDownloadFaceModelsClick(object? sender, RoutedEventArgs e)
-    {
-        var success = await ViewModel.DownloadFaceModelsAsync(ShowErrorDialogAsync, ShowMd5ErrorDialogAsync);
-
-        if (success)
-        {
-            // 下载成功后，根据文件存在状态更新按钮
-            UpdateDownloadButtonStates();
-        }
-    }
-
-    private async void OnDownloadFfmpegClick(object? sender, RoutedEventArgs e)
-    {
-        var success = await ViewModel.DownloadFfmpegAsync(ShowErrorDialogAsync, ShowMd5ErrorDialogAsync);
-
-        if (success)
-        {
-            UpdateDownloadButtonStates();
-        }
-    }
-
-    private async Task ShowErrorDialogAsync()
-    {
-        var dialog = new ContentDialog
-        {
-            Title = "错误",
-            Content = "下载出错，请重试！",
-            PrimaryButtonText = "确定",
-            DefaultButton = ContentDialogButton.Primary
-        };
-        await dialog.ShowAsync();
-    }
-
-    private async Task ShowMd5ErrorDialogAsync()
-    {
-        var dialog = new ContentDialog
-        {
-            Title = "错误",
-            Content = "下载文件MD5校验错误，请重新下载！",
-            PrimaryButtonText = "确定",
-            DefaultButton = ContentDialogButton.Primary
-        };
-        await dialog.ShowAsync();
-    }
-
-    private void OnManageFeaturesClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.FeatureDrawerContent = new object();
-        ViewModel.IsFeatureDrawerOpen = true;
-    }
-
-    private void OnCloseDrawerClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.IsFeatureDrawerOpen = false;
-    }
-
-    private void OnSaveFromDrawerClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.SaveFeatureSettings();
-        ViewModel.IsFeatureDrawerOpen = false;
-        RequestRestart();
-    }
-
-
     private void OnFloatingWindowConfigChanged(object? sender, RoutedEventArgs e)
     {
+        if (!ViewModel.HasFloatingTriggerEntries)
+        {
+            ViewModel.Settings.ShowFloatingWindow = false;
+        }
+
         ViewModel.RefreshFloatingTriggers();
         IAppHost.GetService<FloatingWindowService>().UpdateWindowState();
     }
@@ -247,7 +82,6 @@ public partial class SystemToolsSettingsPage : SettingsPageBase
 
         if (ViewModel.FloatingTriggerRows.Count <= 1)
         {
-            //this.ShowWarningToast("至少需要保留 1 行。");
             return;
         }
 

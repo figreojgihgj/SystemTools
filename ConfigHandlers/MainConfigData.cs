@@ -42,7 +42,23 @@ public class MainConfigData : INotifyPropertyChanged
         }
     }
     
-    bool _lyricifyLiteWarningDismissed;
+
+    bool _enableFloatingWindowFeature = true;
+
+    [JsonPropertyName("enableFloatingWindowFeature")]
+    public bool EnableFloatingWindowFeature
+    {
+        get => _enableFloatingWindowFeature;
+        set
+        {
+            if (value == _enableFloatingWindowFeature) return;
+            _enableFloatingWindowFeature = value;
+            OnPropertyChanged();
+            RestartPropertyChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+        bool _lyricifyLiteWarningDismissed;
 
     [JsonPropertyName("lyricifyLiteWarningDismissed")]
     public bool LyricifyLiteWarningDismissed
@@ -134,6 +150,51 @@ public class MainConfigData : INotifyPropertyChanged
             var clamped = Math.Clamp(value, 0.5, 2.0);
             if (Math.Abs(clamped - _floatingWindowScale) < 0.0001) return;
             _floatingWindowScale = clamped;
+            OnPropertyChanged();
+        }
+    }
+
+    int _floatingWindowTextSize = 12;
+
+    [JsonPropertyName("floatingWindowTextSize")]
+    public int FloatingWindowTextSize
+    {
+        get => _floatingWindowTextSize;
+        set
+        {
+            var clamped = Math.Clamp(value, 8, 30);
+            if (clamped == _floatingWindowTextSize) return;
+            _floatingWindowTextSize = clamped;
+            OnPropertyChanged();
+        }
+    }
+
+    int _floatingWindowIconSize = 22;
+
+    [JsonPropertyName("floatingWindowIconSize")]
+    public int FloatingWindowIconSize
+    {
+        get => _floatingWindowIconSize;
+        set
+        {
+            var clamped = Math.Clamp(value, 8, 30);
+            if (clamped == _floatingWindowIconSize) return;
+            _floatingWindowIconSize = clamped;
+            OnPropertyChanged();
+        }
+    }
+
+    int _floatingWindowOpacity = 80;
+
+    [JsonPropertyName("floatingWindowOpacity")]
+    public int FloatingWindowOpacity
+    {
+        get => _floatingWindowOpacity;
+        set
+        {
+            var clamped = Math.Clamp(value, 10, 100);
+            if (clamped == _floatingWindowOpacity) return;
+            _floatingWindowOpacity = clamped;
             OnPropertyChanged();
         }
     }
