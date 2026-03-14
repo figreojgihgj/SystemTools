@@ -199,6 +199,21 @@ public class MainConfigData : INotifyPropertyChanged
         }
     }
 
+
+    bool _floatingWindowShadowEnabled = true;
+
+    [JsonPropertyName("floatingWindowShadowEnabled")]
+    public bool FloatingWindowShadowEnabled
+    {
+        get => _floatingWindowShadowEnabled;
+        set
+        {
+            if (value == _floatingWindowShadowEnabled) return;
+            _floatingWindowShadowEnabled = value;
+            OnPropertyChanged();
+        }
+    }
+
     int _floatingWindowTheme = 0;
 
     [JsonPropertyName("floatingWindowTheme")]

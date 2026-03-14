@@ -361,6 +361,16 @@ public class FloatingWindowService
         if (_windowContainer != null)
         {
             _windowContainer.Background = windowBackground;
+            _windowContainer.BoxShadow = _configHandler.Data.FloatingWindowShadowEnabled
+                ? new BoxShadows(new BoxShadow
+                {
+                    OffsetX = 0,
+                    OffsetY = 6 * scale,
+                    Blur = 18 * scale,
+                    Spread = 0,
+                    Color = isLightTheme ? Color.Parse("#28000000") : Color.Parse("#60000000")
+                })
+                : default;
         }
 
         _stackPanel.Orientation = Orientation.Vertical;

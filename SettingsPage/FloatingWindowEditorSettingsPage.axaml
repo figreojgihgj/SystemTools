@@ -131,6 +131,14 @@
                         </ComboBox>
                     </controls:SettingsExpanderItem.Footer>
                 </controls:SettingsExpanderItem>
+
+                <controls:SettingsExpanderItem IconSource="{ci:FluentIconSource &#xE51E;}"
+                                               Content="阴影"
+                                               Description="控制悬浮窗阴影效果（默认开启）">
+                    <controls:SettingsExpanderItem.Footer>
+                        <ToggleSwitch IsChecked="{Binding ViewModel.Settings.FloatingWindowShadowEnabled, Mode=TwoWay}" />
+                    </controls:SettingsExpanderItem.Footer>
+                </controls:SettingsExpanderItem>
             </controls:SettingsExpander>
 
 
