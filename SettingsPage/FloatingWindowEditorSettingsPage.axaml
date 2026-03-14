@@ -114,7 +114,7 @@
                     </controls:SettingsExpanderItem.Footer>
                 </controls:SettingsExpanderItem>
 
-                <controls:SettingsExpanderItem IconSource="{ci:FluentIconSource &#xE790;}"
+                <controls:SettingsExpanderItem IconSource="{ci:FluentIconSource &#xE5CB;}"
                                                Content="主题"
                                                Description="设置悬浮窗主题">
                     <controls:SettingsExpanderItem.Footer>
@@ -132,9 +132,9 @@
                     </controls:SettingsExpanderItem.Footer>
                 </controls:SettingsExpanderItem>
 
-                <controls:SettingsExpanderItem IconSource="{ci:FluentIconSource &#xE51E;}"
-                                               Content="阴影"
-                                               Description="控制悬浮窗阴影效果（默认开启）">
+                <controls:SettingsExpanderItem IconSource="{ci:FluentIconSource &#xE20B;}"
+                                               Content="阴影效果"
+                                               Description="悬浮窗阴影效果">
                     <controls:SettingsExpanderItem.Footer>
                         <ToggleSwitch IsChecked="{Binding ViewModel.Settings.FloatingWindowShadowEnabled, Mode=TwoWay}" />
                     </controls:SettingsExpanderItem.Footer>
