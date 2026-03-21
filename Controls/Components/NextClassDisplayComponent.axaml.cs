@@ -15,7 +15,7 @@ namespace SystemTools.Controls.Components;
     "C3E56B6B-0E01-4F3C-8F7B-9264CA2B2143",
     "下节课是",
     "",
-    "显示当天下一节课的课程全名和任教老师。"
+    "显示当天下一节课的课程信息"
 )]
 public partial class NextClassDisplayComponent : ComponentBase<NextClassDisplaySettings>, INotifyPropertyChanged
 {
