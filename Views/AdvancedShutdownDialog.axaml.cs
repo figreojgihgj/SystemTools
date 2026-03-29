@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using System;
+using Avalonia.Threading;
 
 namespace SystemTools.Views;
 
@@ -8,6 +11,24 @@ public partial class AdvancedShutdownDialog : Window
     public AdvancedShutdownDialog()
     {
         InitializeComponent();
+        
+        this.GetPropertyChangedObservable(Window.WindowStateProperty).Subscribe(e =>
+        {
+            if (this.WindowState == WindowState.Minimized)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    this.WindowState = WindowState.Normal;
+                    this.Activate();
+                    this.InvalidateVisual();
+                    
+                    // var pos = this.Position;
+                    // this.Position = pos.WithX(pos.X + 1);
+                    // this.Position = pos;
+                    
+                }, DispatcherPriority.MaxValue);
+            }
+        });
     }
 
     public TextBlock? CountdownTextBlock => this.FindControl<TextBlock>("CountdownTextBlockElement");
