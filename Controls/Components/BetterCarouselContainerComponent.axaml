@@ -116,7 +116,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <TextBlock Text="<"
+            <TextBlock Text="&lt;"
                        IsVisible="{Binding Settings.ShowSideSeparators}"
                        VerticalAlignment="Center"
                        Margin="4,0,0,0" />

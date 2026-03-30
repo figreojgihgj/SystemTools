@@ -83,7 +83,7 @@
                 </controls:SettingsExpander>
 
                 <controls:SettingsExpander Header="添加分隔符样式"
-                                           Description="在容器左右两侧固定显示“>”和“<”"
+                                           Description="在容器左右两侧固定显示“&gt;”和“&lt;”"
                                            IconSource="{ci:FluentIconSource &#xE0AE;}">
                     <controls:SettingsExpander.Footer>
                         <ToggleSwitch IsChecked="{Binding Settings.ShowSideSeparators, Mode=TwoWay}" />
