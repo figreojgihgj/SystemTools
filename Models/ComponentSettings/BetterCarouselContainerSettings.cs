@@ -60,16 +60,10 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
     private bool _showProgressBar = true;
 
     [ObservableProperty]
-    private bool _useLongestWidthAsFixedLength = false;
-
-    [ObservableProperty]
     private bool _showSideSeparators = false;
 
     [ObservableProperty]
     private BetterCarouselProgressBarPosition _progressBarPosition = BetterCarouselProgressBarPosition.Bottom;
-
-    [ObservableProperty]
-    private ObservableCollection<double> _componentMeasuredWidths = new();
 
     public ObservableCollection<CoreComponentSettings> Children
     {
@@ -92,9 +86,7 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
     public BetterCarouselContainerSettings()
     {
         _children.CollectionChanged += OnChildrenCollectionChanged;
-        _componentMeasuredWidths.CollectionChanged += OnComponentMeasuredWidthsCollectionChanged;
         NormalizeDisplayDurations();
-        NormalizeMeasuredWidths();
     }
 
     public double GetDisplayDurationSeconds(int index)
@@ -141,47 +133,6 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
         }
     }
 
-    public double GetMeasuredWidth(int index)
-    {
-        NormalizeMeasuredWidths();
-        if (index < 0 || index >= ComponentMeasuredWidths.Count)
-        {
-            return 0;
-        }
-
-        return Math.Max(0, ComponentMeasuredWidths[index]);
-    }
-
-    public void SetMeasuredWidth(int index, double value)
-    {
-        NormalizeMeasuredWidths();
-        if (index < 0 || index >= ComponentMeasuredWidths.Count)
-        {
-            return;
-        }
-
-        var sanitized = Math.Max(0, value);
-        if (Math.Abs(ComponentMeasuredWidths[index] - sanitized) < 0.01)
-        {
-            return;
-        }
-
-        ComponentMeasuredWidths[index] = sanitized;
-    }
-
-    public void NormalizeMeasuredWidths()
-    {
-        while (ComponentMeasuredWidths.Count < Children.Count)
-        {
-            ComponentMeasuredWidths.Add(0);
-        }
-
-        while (ComponentMeasuredWidths.Count > Children.Count)
-        {
-            ComponentMeasuredWidths.RemoveAt(ComponentMeasuredWidths.Count - 1);
-        }
-    }
-
     private void OnChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         switch (e.Action)
@@ -196,7 +147,6 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
                 for (var i = 0; i < e.NewItems.Count; i++)
                 {
                     ComponentDisplayDurations.Insert(Math.Min(e.NewStartingIndex + i, ComponentDisplayDurations.Count), DefaultDisplayDurationSeconds);
-                    ComponentMeasuredWidths.Insert(Math.Min(e.NewStartingIndex + i, ComponentMeasuredWidths.Count), 0);
                 }
                 break;
             case NotifyCollectionChangedAction.Remove:
@@ -209,10 +159,6 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
                 for (var i = 0; i < e.OldItems.Count && e.OldStartingIndex < ComponentDisplayDurations.Count; i++)
                 {
                     ComponentDisplayDurations.RemoveAt(e.OldStartingIndex);
-                    if (e.OldStartingIndex < ComponentMeasuredWidths.Count)
-                    {
-                        ComponentMeasuredWidths.RemoveAt(e.OldStartingIndex);
-                    }
                 }
                 break;
             case NotifyCollectionChangedAction.Move:
@@ -225,37 +171,19 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
                 if (e.OldItems.Count == 1)
                 {
                     ComponentDisplayDurations.Move(e.OldStartingIndex, e.NewStartingIndex);
-                    if (e.OldStartingIndex < ComponentMeasuredWidths.Count && e.NewStartingIndex < ComponentMeasuredWidths.Count)
-                    {
-                        ComponentMeasuredWidths.Move(e.OldStartingIndex, e.NewStartingIndex);
-                    }
                 }
                 else
                 {
                     NormalizeDisplayDurations();
-                    NormalizeMeasuredWidths();
                 }
                 break;
             case NotifyCollectionChangedAction.Replace:
                 NormalizeDisplayDurations();
-                NormalizeMeasuredWidths();
                 break;
             case NotifyCollectionChangedAction.Reset:
                 NormalizeDisplayDurations();
-                NormalizeMeasuredWidths();
                 break;
         }
-    }
-
-    partial void OnComponentMeasuredWidthsChanged(ObservableCollection<double> value)
-    {
-        value.CollectionChanged += OnComponentMeasuredWidthsCollectionChanged;
-        NormalizeMeasuredWidths();
-    }
-
-    private void OnComponentMeasuredWidthsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        NormalizeMeasuredWidths();
     }
 
     private static double SanitizeDuration(double seconds) => Math.Clamp(seconds, 1, 3600);

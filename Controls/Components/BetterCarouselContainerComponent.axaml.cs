@@ -37,8 +37,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
     private DateTime _displayStartedAt = DateTime.UtcNow;
     private bool _isLoaded;
     private bool _isAnimating;
-    private double _separatorExtraWidth;
-    private double _appliedListWidth = double.NaN;
 
     public static readonly AttachedProperty<bool> IsAnimationEnabledProperty =
         AvaloniaProperty.RegisterAttached<BetterCarouselContainerComponent, Control, bool>("IsAnimationEnabled", inherits: true);
@@ -71,7 +69,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
                 _ = AnimateTransitionAsync(oldIndex, value);
             }
             
-            RefreshComponentWidthsAndContainerWidth();
             RestartProgress();
         }
     }
@@ -295,11 +292,8 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
         _rulesetService.StatusUpdated += OnRulesetStatusUpdated;
         SubscribeChildren(Settings.Children);
         Settings.NormalizeDisplayDurations();
-        Settings.NormalizeMeasuredWidths();
-        MeasureSeparatorWidth();
         EnsureSelectedIndexValid();
         UpdateProgressState();
-        RefreshComponentWidthsAndContainerWidth();
         _timer.Start();
     }
 
@@ -321,7 +315,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        TryCaptureComponentWidths();
         UpdateProgressState();
     }
 
@@ -349,11 +342,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
             RestartProgress();
         }
 
-        if (e.PropertyName is nameof(Settings.UseLongestWidthAsFixedLength) or nameof(Settings.ShowSideSeparators))
-        {
-            MeasureSeparatorWidth();
-            RefreshComponentWidthsAndContainerWidth();
-        }
     }
 
     private void OnChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -375,10 +363,7 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
         }
 
         Settings.NormalizeDisplayDurations();
-        Settings.NormalizeMeasuredWidths();
         EnsureSelectedIndexValid();
-        TryCaptureComponentWidths(force: true);
-        RefreshComponentWidthsAndContainerWidth();
         UpdateProgressState(resetWhenIdle: true);
     }
 
@@ -386,14 +371,7 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
     {
         if (e.PropertyName is nameof(ComponentSettings.HideOnRule) or nameof(ComponentSettings.HidingRules) or nameof(ComponentSettings.Id) or nameof(ComponentSettings.NameCache))
         {
-            RefreshComponentWidthsAndContainerWidth();
             UpdateProgressState(resetWhenIdle: true);
-        }
-
-        if (e.PropertyName == nameof(ComponentSettings.LastWidthCache))
-        {
-            TryCaptureComponentWidths(force: true);
-            RefreshComponentWidthsAndContainerWidth();
         }
     }
 
@@ -437,54 +415,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
         {
             SelectedIndex = FindFirstDisplayableIndex();
         }
-    }
-
-    private void MeasureSeparatorWidth()
-    {
-        _separatorExtraWidth = Settings.ShowSideSeparators ? 16 : 0;
-    }
-
-    private void TryCaptureComponentWidths(bool force = false)
-    {
-        if (!_isLoaded || CarouselListBox == null)
-        {
-            return;
-        }
-
-        Settings.NormalizeMeasuredWidths();
-        for (var i = 0; i < Settings.Children.Count; i++)
-        {
-            var width = Settings.Children[i].LastWidthCache;
-            if (width > 0.1 && (force || Settings.GetMeasuredWidth(i) <= 0.1))
-            {
-                Settings.SetMeasuredWidth(i, width);
-            }
-        }
-    }
-
-    private void RefreshComponentWidthsAndContainerWidth()
-    {
-        if (!_isLoaded || CarouselListBox == null)
-        {
-            return;
-        }
-
-        var maxWidth = Settings.ComponentMeasuredWidths.DefaultIfEmpty(0).Max();
-        var selectedWidth = Settings.GetMeasuredWidth(SelectedIndex);
-        var contentWidth = Settings.UseLongestWidthAsFixedLength ? maxWidth : selectedWidth;
-        var targetWidth = Math.Max(0, contentWidth) + 5 + _separatorExtraWidth;
-        var normalizedTargetWidth = targetWidth > 0.1 ? targetWidth : double.NaN;
-        var changed = double.IsNaN(normalizedTargetWidth)
-            ? !double.IsNaN(_appliedListWidth)
-            : double.IsNaN(_appliedListWidth) || Math.Abs(_appliedListWidth - normalizedTargetWidth) > 0.5;
-
-        if (!changed)
-        {
-            return;
-        }
-
-        _appliedListWidth = normalizedTargetWidth;
-        CarouselListBox.Width = normalizedTargetWidth;
     }
 
     private void UpdateProgressState(bool resetWhenIdle = false)

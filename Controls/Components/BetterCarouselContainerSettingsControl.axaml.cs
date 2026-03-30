@@ -23,15 +23,6 @@ public partial class BetterCarouselDurationItem : ObservableObject
 
     public string Subtitle => $"第 {Index + 1} 个组件";
 
-    public string DisplayNameWithWidth
-    {
-        get
-        {
-            var width = _settings.GetMeasuredWidth(Index);
-            return width <= 0.01 ? DisplayName : $"{DisplayName}（长度：{Math.Round(width, 1)}）";
-        }
-    }
-
     public double DurationSeconds
     {
         get => _settings.GetDisplayDurationSeconds(Index);
@@ -52,7 +43,6 @@ public partial class BetterCarouselDurationItem : ObservableObject
     public void Refresh()
     {
         OnPropertyChanged(nameof(DisplayName));
-        OnPropertyChanged(nameof(DisplayNameWithWidth));
         OnPropertyChanged(nameof(Subtitle));
         OnPropertyChanged(nameof(DurationSeconds));
     }
@@ -87,7 +77,6 @@ public partial class BetterCarouselContainerSettingsControl : ComponentBase<Bett
         }
 
         Settings.ComponentDisplayDurations.CollectionChanged += OnDurationCollectionChanged;
-        Settings.ComponentMeasuredWidths.CollectionChanged += OnMeasuredWidthCollectionChanged;
         RefreshDurationItems();
     }
 
@@ -100,7 +89,6 @@ public partial class BetterCarouselContainerSettingsControl : ComponentBase<Bett
         }
 
         Settings.ComponentDisplayDurations.CollectionChanged -= OnDurationCollectionChanged;
-        Settings.ComponentMeasuredWidths.CollectionChanged -= OnMeasuredWidthCollectionChanged;
     }
 
     private void OnChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -133,11 +121,6 @@ public partial class BetterCarouselContainerSettingsControl : ComponentBase<Bett
     }
 
     private void OnDurationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        RefreshDurationItems();
-    }
-
-    private void OnMeasuredWidthCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         RefreshDurationItems();
     }
