@@ -43,14 +43,12 @@
     </ci:ComponentBase.Styles>
 
     <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:BetterCarouselContainerComponent}}"
-          x:Name="GridRoot"
-          RowDefinitions="Auto,Auto,Auto">
+          x:Name="GridRoot">
 
         <ProgressBar x:Name="DisplayProgressBarTop"
-                     Grid.Row="0"
                      VerticalAlignment="Top"
                      HorizontalAlignment="Stretch"
-                     Margin="0,0,0,6"
+                     Margin="0"
                      Height="4"
                      MinWidth="0"
                      Minimum="0"
@@ -59,7 +57,6 @@
                      Value="{Binding CurrentProgressPercent, Mode=OneWay}" />
 
         <StackPanel Orientation="Horizontal" 
-                    Grid.Row="1"
                     Spacing="0"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Stretch">
@@ -123,10 +120,9 @@
         </StackPanel>
 
         <ProgressBar x:Name="DisplayProgressBarBottom"
-                     Grid.Row="2"
                      VerticalAlignment="Bottom"
                      HorizontalAlignment="Stretch"
-                     Margin="0,6,0,0"
+                     Margin="0"
                      Height="4"
                      MinWidth="0"
                      Minimum="0"
