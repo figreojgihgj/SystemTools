@@ -29,6 +29,15 @@ public enum BetterCarouselAnimationStyle
     Flash = 1
 }
 
+public enum BetterCarouselProgressBarPosition
+{
+    [Description("置于底部")]
+    Bottom = 0,
+
+    [Description("置于顶部")]
+    Top = 1
+}
+
 public partial class BetterCarouselContainerSettings : ObservableObject, IComponentContainerSettings
 {
     public const double DefaultDisplayDurationSeconds = 15;
@@ -49,6 +58,12 @@ public partial class BetterCarouselContainerSettings : ObservableObject, ICompon
 
     [ObservableProperty]
     private bool _showProgressBar = true;
+
+    [ObservableProperty]
+    private bool _showSideSeparators = false;
+
+    [ObservableProperty]
+    private BetterCarouselProgressBarPosition _progressBarPosition = BetterCarouselProgressBarPosition.Bottom;
 
     public ObservableCollection<CoreComponentSettings> Children
     {

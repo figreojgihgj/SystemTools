@@ -62,6 +62,7 @@ public class Plugin : PluginBase
         services.AddLogging();
         services.AddSingleton(GlobalConstants.MainConfig);
         services.AddSingleton<FloatingWindowService>();
+        services.AddSingleton<AdaptiveThemeSyncService>();
         
         // ========== 注册可选人脸识别 ==========
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -82,6 +83,7 @@ public class Plugin : PluginBase
         
         // ========== 注册设置页面 ==========
         services.AddSettingsPage<SystemToolsSettingsPage>();
+        services.AddSettingsPage<MoreFeaturesOptionsSettingsPage>();
         if (GlobalConstants.MainConfig.Data.EnableFloatingWindowFeature)
         {
             services.AddSettingsPage<FloatingWindowEditorSettingsPage>();
@@ -106,6 +108,7 @@ public class Plugin : PluginBase
             {
                 IAppHost.GetService<FloatingWindowService>().Start();
             }
+            IAppHost.GetService<AdaptiveThemeSyncService>().Start();
             _logger = IAppHost.GetService<ILogger<Plugin>>();
 
             _logger?.LogInformation("[SystemTools]实验性功能状态: {Status}", experimentalEnabled);
@@ -293,8 +296,6 @@ public class Plugin : PluginBase
         }
     }
 
-
-
     private void RegisterBaseRules(IServiceCollection services)
     {
         var config = GlobalConstants.MainConfig!.Data;
@@ -308,13 +309,19 @@ public class Plugin : PluginBase
         if (config.IsRuleEnabled("SystemTools.UsingClassPlanRule"))
         {
             services.AddRule<UsingClassPlanRuleSettings, UsingClassPlanRuleSettingsControl>(
-                "SystemTools.UsingClassPlanRule", "正在使用某课程表", "\uE82D", HandleUsingClassPlanRule);
+                "SystemTools.UsingClassPlanRule", "正在使用某课程表", "\uE6B1", HandleUsingClassPlanRule);
         }
 
         if (config.IsRuleEnabled("SystemTools.UsingTimeLayoutRule"))
         {
             services.AddRule<UsingTimeLayoutRuleSettings, UsingTimeLayoutRuleSettingsControl>(
-                "SystemTools.UsingTimeLayoutRule", "正在使用某时间表", "\uE823", HandleUsingTimeLayoutRule);
+                "SystemTools.UsingTimeLayoutRule", "正在使用某时间表", "\uE69D", HandleUsingTimeLayoutRule);
+        }
+
+        if (config.IsRuleEnabled("SystemTools.InTimePeriodRule"))
+        {
+            services.AddRule<InTimePeriodRuleSettings, InTimePeriodRuleSettingsControl>(
+                "SystemTools.InTimePeriodRule", "是否在某时间段", "\uE4CA", HandleInTimePeriodRule);
         }
     }
 
@@ -560,6 +567,24 @@ public class Plugin : PluginBase
         return timeLayout.IsActivated;
     }
 
+    private static bool HandleInTimePeriodRule(object? settings)
+    {
+        if (settings is not InTimePeriodRuleSettings ruleSettings ||
+            !TimeSpan.TryParse(ruleSettings.StartTime, out var start) ||
+            !TimeSpan.TryParse(ruleSettings.EndTime, out var end))
+        {
+            return false;
+        }
+
+        var current = IAppHost.TryGetService<IExactTimeService>()?.GetCurrentLocalDateTime().TimeOfDay ?? DateTime.Now.TimeOfDay;
+        if (start <= end)
+        {
+            return current >= start && current <= end;
+        }
+
+        return current >= start || current <= end;
+    }
+
     private void BuildSimulationMenu(MainConfigData config)
     {
         var items = new List<ActionMenuTreeItem>();
@@ -775,6 +800,8 @@ public class Plugin : PluginBase
 
     private void OnAppStopping(object? sender, EventArgs e)
     {
+        IAppHost.GetService<AdaptiveThemeSyncService>().Stop();
+        AdvancedShutdownAction.CancelPlanOnAppStopping();
         if (GlobalConstants.MainConfig?.Data.EnableFloatingWindowFeature == true)
         {
             IAppHost.GetService<FloatingWindowService>().Stop();
