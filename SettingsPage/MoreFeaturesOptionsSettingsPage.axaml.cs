@@ -7,8 +7,7 @@ using SystemTools.Shared;
 
 namespace SystemTools;
 
-[HidePageTitle]
-[SettingsPageInfo("systemtools.settings.more", "更多功能选项", "\uE712", "\uE712", true)]
+[SettingsPageInfo("systemtools.settings.more", "更多功能选项…", "\uE28E", "\uE28E", true)]
 public partial class MoreFeaturesOptionsSettingsPage : SettingsPageBase
 {
     public MainConfigData Config => GlobalConstants.MainConfig!.Data;
