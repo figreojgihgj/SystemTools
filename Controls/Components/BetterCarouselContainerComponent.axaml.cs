@@ -76,6 +76,8 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
     public double CurrentProgressPercent { get; private set; }
 
     public int AnimationStyleValue => (int)Settings.AnimationStyle;
+    public bool ShowTopProgressBar => Settings.ShowProgressBar && Settings.ProgressBarPosition == BetterCarouselProgressBarPosition.Top;
+    public bool ShowBottomProgressBar => Settings.ShowProgressBar && Settings.ProgressBarPosition == BetterCarouselProgressBarPosition.Bottom;
 
     public new event PropertyChangedEventHandler? PropertyChanged;
 
@@ -323,15 +325,15 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
             OnPropertyChanged(nameof(AnimationStyleValue));
         }
 
-        if (e.PropertyName is nameof(Settings.ShowProgressBar))
+        if (e.PropertyName is nameof(Settings.ShowProgressBar) or nameof(Settings.ProgressBarPosition))
         {
-            PseudoClasses.Set(":progress-visible", Settings.ShowProgressBar);
+            OnPropertyChanged(nameof(ShowTopProgressBar));
+            OnPropertyChanged(nameof(ShowBottomProgressBar));
         }
 
         if (e.PropertyName is nameof(Settings.RotationMode) or nameof(Settings.IsAnimationEnabled) or nameof(Settings.ShowProgressBar))
         {
             UpdateProgressState(resetWhenIdle: true);
-            return;
         }
 
         if (e.PropertyName == nameof(Settings.ComponentDisplayDurations))
@@ -339,6 +341,7 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
             Settings.NormalizeDisplayDurations();
             RestartProgress();
         }
+
     }
 
     private void OnChildrenCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -416,8 +419,6 @@ public partial class BetterCarouselContainerComponent : ComponentBase<BetterCaro
 
     private void UpdateProgressState(bool resetWhenIdle = false)
     {
-        PseudoClasses.Set(":progress-visible", Settings.ShowProgressBar);
-
         var displayable = GetDisplayableIndexes();
         if (displayable.Length == 0)
         {
