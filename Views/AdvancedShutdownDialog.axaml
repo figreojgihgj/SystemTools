@@ -1,14 +1,14 @@
 <ci:MyWindow x:Class="SystemTools.Views.AdvancedShutdownDialog"
-        xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ci="http://classisland.tech/schemas/xaml/core"
-        Width="590"
-        Height="215" 
-        WindowStartupLocation="CenterScreen"
-        Topmost="True"
-        CanResize="False"
-        Title="高级计时关机"
-        ShowAsDialog="True">
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ci="http://classisland.tech/schemas/xaml/core"
+             Width="590"
+             Height="200" 
+             WindowStartupLocation="CenterScreen"
+             Topmost="True"
+             CanResize="False"
+             Title="SystemTools - 高级计时关机"
+             ShowAsDialog="True">
     
     <Border Padding="16" CornerRadius="8"
             Background="{DynamicResource LayerFillColorAltBrush}">
@@ -38,7 +38,7 @@
             </Border>
 
             <StackPanel Grid.Row="2" Spacing="12">
-                <TextBlock Text="即将关闭计算机。请及时保存您的工作或选择其他操作。"
+                <TextBlock Text=" 即将关闭计算机。请及时保存您的工作或选择其他操作。"
                            TextWrapping="Wrap"
                            FontSize="14"
                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />

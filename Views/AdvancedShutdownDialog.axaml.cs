@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using System;
+using Avalonia.Input;
 using Avalonia.Threading;
 using ClassIsland.Core.Controls;
 
@@ -22,14 +23,11 @@ public partial class AdvancedShutdownDialog : MyWindow
                     this.WindowState = WindowState.Normal;
                     this.Activate();
                     this.InvalidateVisual();
-                    
-                    // var pos = this.Position;
-                    // this.Position = pos.WithX(pos.X + 1);
-                    // this.Position = pos;
-                    
                 }, DispatcherPriority.MaxValue);
             }
         });
+        
+         //this.Closing += (s, e) => { e.Cancel = true; };
     }
 
     public TextBlock? CountdownTextBlock => this.FindControl<TextBlock>("CountdownTextBlockElement");
