@@ -317,8 +317,7 @@ public class AdvancedShutdownAction(ILogger<AdvancedShutdownAction> logger) : Ac
 
         var dialog = new AdvancedShutdownDialog
         {
-            CanResize = false,
-            SystemDecorations = SystemDecorations.Full
+            CanResize = false
         };
         _activeDialog = dialog;
 
